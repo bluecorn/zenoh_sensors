@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "z_sub",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/sensorctl/example/z_sub.dart",
+      "cwd": "${workspaceFolder}/apps/sensorctl",
+      "args": ["-l", "tcp/127.0.0.1:7447", "--no-multicast-scouting"]
+    },
+    {
+      "name": "z_put",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/sensorctl/example/z_put.dart",
+      "cwd": "${workspaceFolder}/apps/sensorctl",
+      "args": [
+        "-e", "tcp/127.0.0.1:7447", "--no-multicast-scouting", "--cfg", "listen/endpoints:[]",
+        "-k", "demo/example/test", "-p", "Hello from the guide"
+      ]
+    }
+  ]
+}
