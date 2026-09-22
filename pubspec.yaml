@@ -1,0 +1,9 @@
+name: zenoh_sensors
+publish_to: none
+
+environment:
+  sdk: ^3.13.2
+
+workspace:
+  - apps/sensorctl
+  - packages/sensor_core
