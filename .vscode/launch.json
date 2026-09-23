@@ -7,11 +7,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/apps/sensorctl/example/z_sub.dart",
       "cwd": "${workspaceFolder}",
-      "args": [
-        "-l",
-        "tcp/127.0.0.1:7447",
-        "--no-multicast-scouting"
-      ]
+      "args": ["-l", "tcp/127.0.0.1:7447", "--no-multicast-scouting"]
     },
     {
       "name": "z_put",
@@ -20,15 +16,8 @@
       "program": "${workspaceFolder}/apps/sensorctl/example/z_put.dart",
       "cwd": "${workspaceFolder}",
       "args": [
-        "-e",
-        "tcp/127.0.0.1:7447",
-        "--no-multicast-scouting",
-        "--cfg",
-        "listen/endpoints:[]",
-        "-k",
-        "demo/example/test",
-        "-p",
-        "Hello from the guide"
+        "-e", "tcp/127.0.0.1:7447", "--no-multicast-scouting", "--cfg", "listen/endpoints:[]",
+        "-k", "demo/example/test", "-p", "Hello from the guide"
       ]
     },
     {
