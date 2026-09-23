@@ -4,6 +4,9 @@ publish_to: none
 environment:
   sdk: ^3.13.2
 
+dependencies:
+  sensor_core: ^1.0.0
+
 workspace:
   - apps/sensorctl
   - packages/sensor_core
