@@ -48,7 +48,7 @@ void main() {
     }
   });
 
-  test("the collector connects to where the sensor node listens", () {
+  test('the collector connects to where the sensor node listens', () {
     const address = '["tcp/127.0.0.1:7447"]';
     final sensorSettings = SessionSettings.sensorNode().asJson5;
     final collectorSettings = SessionSettings.collectorNode().asJson5;
