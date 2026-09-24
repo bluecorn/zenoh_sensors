@@ -1,7 +1,7 @@
 import 'package:sensor_core/src/services/session_settings.dart';
 import 'package:zenoh_dart/zenoh.dart';
 
-/// Starts zenoh's own log at [level], printed to standard error: for a
+/// Starts zenoh's own log at [level], printed to standard output: for a
 /// program with a terminal. Once per process, before any session opens.
 void initZenohLogging(String level) => Zenoh.initLog(level);
 
@@ -16,8 +16,9 @@ class ZenohService {
 
   Session? _session;
 
-  /// Opens the session with the settings. The connection they ask for has
-  /// been made, or has already failed, when this returns.
+  /// Opens the session with the settings. When this returns, each connection
+  /// they ask for is made, or its first attempt has failed and zenoh keeps
+  /// retrying it.
   Future<void> open() async {
     _session = await Session.open(config: _config());
   }
