@@ -9,4 +9,5 @@ dependencies:
 
 workspace:
   - apps/sensorctl
+  - apps/sensor_node
   - packages/sensor_core

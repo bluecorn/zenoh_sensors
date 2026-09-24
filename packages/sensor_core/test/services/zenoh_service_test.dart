@@ -1,5 +1,8 @@
 import 'package:sensor_core/sensor_core.dart';
 import 'package:test/test.dart';
+import 'package:zenoh_dart/zenoh.dart';
+
+import '../support/collector.dart';
 
 void main() {
   test('a sensor node and a collector find each other on loopback', () async {
@@ -106,5 +109,33 @@ void main() {
 
     // The claim: asking throws a StateError.
     expect(() => sensorNode.zid, throwsStateError);
+  });
+
+  test('a put through a publication reaches a subscriber as text', () async {
+    // The node's end: its session, from the settings that listen.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    addTearDown(sensorNode.dispose);
+    await sensorNode.open();
+
+    // The laptop's end: a plain session that subscribes, as z_sub does.
+    final collector = await openCollector();
+    addTearDown(collector.close);
+    final subscriber = collector.declareSubscriber('sensor/phone/accel');
+    addTearDown(subscriber.close);
+    final received = <Sample>[];
+    subscriber.stream.listen(received.add);
+
+    // The new contract to implement: declare a publication on a key,
+    // then put text through it.
+    sensorNode
+        .declarePublication('sensor/phone/accel')
+        .put('0.000,9.776,0.812');
+    // A put returns before the sample arrives, so give it time to cross.
+    await Future<void>.delayed(delivery);
+
+    // The claim: the text arrives, marked text/plain.
+    final payloads = received.map((sample) => sample.payload).toList();
+    expect(payloads, ['0.000,9.776,0.812']);
+    expect(received.single.encoding, 'text/plain');
   });
 }
