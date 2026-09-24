@@ -11,6 +11,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  sensor_core: ^1.0.0
+  sensors_plus: ^7.1.0
 
 dev_dependencies:
   flutter_test:
