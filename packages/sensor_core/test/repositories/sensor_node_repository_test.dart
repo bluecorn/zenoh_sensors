@@ -82,7 +82,8 @@ void main() {
     final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
     final published = await repository.publish().toList();
 
-    // The claim: the text on the wire, and the same reading handed on.
+    // The claim: the text put through the publication, and the same reading
+    // handed on.
     expect(zenoh.publications.single.puts, ['0.000,9.776,0.812']);
     expect(published, [reading]);
   });

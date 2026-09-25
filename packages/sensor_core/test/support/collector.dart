@@ -9,5 +9,6 @@ Future<Session> openCollector() {
   return Session.open(config: config);
 }
 
-/// Long enough for a sample to cross the loopback, which takes milliseconds.
+/// Long enough for a sample, or a declaration, to cross the loopback, which
+/// takes milliseconds.
 const delivery = Duration(milliseconds: 500);

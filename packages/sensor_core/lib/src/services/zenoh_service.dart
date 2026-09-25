@@ -1,8 +1,9 @@
 import 'package:sensor_core/src/services/session_settings.dart';
 import 'package:zenoh_dart/zenoh.dart';
 
-/// Starts zenoh's own log at [level], printed to standard output: for a
-/// program with a terminal. Once per process, before any session opens.
+/// Starts zenoh's own log, printed to standard output: for a program with a
+/// terminal. [level] applies unless `RUST_LOG` is set. Once per process,
+/// before any session opens.
 void initZenohLogging(String level) => Zenoh.initLog(level);
 
 /// Zenoh's own log at [level] as lines, for a program with no terminal to
@@ -26,8 +27,8 @@ class Publication {
   void close() => _publisher.close();
 }
 
-/// The one class that talks to zenoh. It owns the session and hands plain
-/// Dart values upward.
+/// The owner of the zenoh session. It hands upward only plain Dart values and
+/// its own [Publication]s.
 class ZenohService {
   /// A service for one role's [settings]. Nothing opens until [open].
   new(this.settings);
@@ -45,7 +46,7 @@ class ZenohService {
     _session = await Session.open(config: _config());
   }
 
-  /// The session's identity: thirty-two hexadecimal characters.
+  /// The session's identity: up to thirty-two hexadecimal characters.
   String get zid => _opened.zid.toHexString();
 
   /// The identities of the peers this session is connected to.

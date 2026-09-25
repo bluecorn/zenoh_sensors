@@ -1,2 +1,3 @@
-# The service's tests share one loopback port, so test files run one at a time.
+# Test files that open zenoh sessions share one loopback port, so they run
+# one at a time.
 concurrency: 1
