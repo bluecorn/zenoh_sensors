@@ -5,6 +5,13 @@ import 'package:zenoh_dart/zenoh.dart';
 /// program with a terminal. Once per process, before any session opens.
 void initZenohLogging(String level) => Zenoh.initLog(level);
 
+/// Zenoh's own log at [level] as lines, for a program with no terminal to
+/// print to, such as an app. Once per process, before any session opens, and
+/// never after [initZenohLogging].
+Stream<String> zenohLog(String level) =>
+    Zenoh.initLogWithSink(minSeverity: LogSeverity.values.byName(level))
+        .map((record) => 'zenoh ${record.severity.name}: ${record.message}');
+
 /// A declared publisher on one key expression, as the service hands it out:
 /// text in, marked `text/plain` on every put.
 class Publication {
