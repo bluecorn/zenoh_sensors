@@ -138,4 +138,62 @@ void main() {
     expect(payloads, ['0.000,9.776,0.812']);
     expect(received.single.encoding, 'text/plain');
   });
+
+  test(
+    'a subscriber that arrives after a put sees only what follows',
+    () async {
+      // The node's end: a session and its publication.
+      final sensorNode = ZenohService(SessionSettings.sensorNode());
+      addTearDown(sensorNode.dispose);
+      await sensorNode.open();
+      final publication = sensorNode.declarePublication('sensor/phone/accel');
+
+      // The laptop's end: a plain session, with no subscriber yet.
+      final collector = await openCollector();
+      addTearDown(collector.close);
+
+      // A put before anyone subscribes.
+      publication.put('before');
+
+      // Subscribe late. Wait once for the declaration to reach the node's
+      // side, and once for the next put to arrive.
+      final subscriber = collector.declareSubscriber('sensor/phone/accel');
+      addTearDown(subscriber.close);
+      final received = <Sample>[];
+      subscriber.stream.listen(received.add);
+      await Future<void>.delayed(delivery);
+      publication.put('after');
+      await Future<void>.delayed(delivery);
+
+      // The claim: pub/sub keeps nothing, so only the later put arrives.
+      final payloads = received.map((sample) => sample.payload).toList();
+      expect(payloads, ['after']);
+    },
+  );
+
+  test('disposing the service closes its publications', () async {
+    // A rule of the pattern: dispose closes what the service declared.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    await sensorNode.open();
+    final publication = sensorNode.declarePublication('sensor/phone/accel');
+
+    sensorNode.dispose();
+
+    // The claim: a put after dispose is an error, because the publisher
+    // underneath is closed.
+    expect(() => publication.put('late'), throwsStateError);
+  });
+
+  test('closing a publication twice is safe', () async {
+    // A rule of the pattern, which the repository's cancel and the
+    // service's dispose both rely on.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    addTearDown(sensorNode.dispose);
+    await sensorNode.open();
+    final publication = sensorNode.declarePublication('sensor/phone/accel')
+      ..close();
+
+    // The claim: the second close returns normally.
+    expect(publication.close, returnsNormally);
+  });
 }
