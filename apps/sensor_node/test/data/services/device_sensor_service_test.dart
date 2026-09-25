@@ -5,8 +5,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 void main() {
   test('an accelerometer event becomes a reading, field for field', () async {
     // A stand-in for the plugin's function: one event, made by the test.
-    final at = DateTime(2026, 9, 23, 12);
-    final event = AccelerometerEvent(0.1, 9.8, 0.2, at);
+    final event = AccelerometerEvent(0.1, 9.8, 0.2, DateTime(2026, 9, 23, 12));
     final service = DeviceSensorService(
       events: ({samplingPeriod = SensorInterval.normalInterval}) =>
           Stream.value(event),
@@ -15,9 +14,9 @@ void main() {
     // The code to implement: each event mapped to a reading.
     final readings = await service.accelerometer().toList();
 
-    // The claim: one reading, with the event's four values.
-    final fields = readings.map((r) => (r.x, r.y, r.z, r.timestamp)).toList();
-    expect(fields, [(0.1, 9.8, 0.2, at)]);
+    // The claim: one reading, with the event's values on the three axes.
+    final fields = readings.map((r) => (r.x, r.y, r.z)).toList();
+    expect(fields, [(0.1, 9.8, 0.2)]);
   });
 
   test('the sampling period is passed on as asked', () async {

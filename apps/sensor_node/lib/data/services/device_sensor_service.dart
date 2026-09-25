@@ -17,8 +17,7 @@ class DeviceSensorService implements SensorService {
   @override
   Stream<Reading> accelerometer({
     Duration samplingPeriod = const Duration(milliseconds: 200),
-  }) => _events(samplingPeriod: samplingPeriod).map(
-    (event) =>
-        Reading(x: event.x, y: event.y, z: event.z, timestamp: event.timestamp),
-  );
+  }) =>
+      _events(samplingPeriod: samplingPeriod)
+          .map((event) => Reading(x: event.x, y: event.y, z: event.z));
 }

@@ -25,12 +25,7 @@ void main() {
 
     // The code to implement: a repository that publishes one reading
     // from a stand-in sensor, through the node's session.
-    final reading = Reading(
-      x: 0,
-      y: 9.776,
-      z: 0.812,
-      timestamp: DateTime.now(),
-    );
+    const reading = Reading(x: 0, y: 9.776, z: 0.812);
     final sensor = FakeSensorService(Stream.value(reading));
     final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
     final published = await repository.publish().toList();
@@ -80,12 +75,7 @@ void main() {
     // Stand-ins: a service that records what is put through it, and a
     // sensor that delivers one reading.
     final zenoh = FakeZenohService();
-    final reading = Reading(
-      x: 0,
-      y: 9.776,
-      z: 0.812,
-      timestamp: DateTime.now(),
-    );
+    const reading = Reading(x: 0, y: 9.776, z: 0.812);
     final sensor = FakeSensorService(Stream.value(reading));
 
     // The code to implement: each reading put as text, then handed on.

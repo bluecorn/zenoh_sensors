@@ -1,13 +1,8 @@
-/// One reading of the accelerometer: metres per second squared on each axis,
-/// gravity included, and the moment the device took it.
+/// One reading of the accelerometer: meters per second squared on each axis,
+/// gravity included.
 class Reading {
-  /// A reading of [x], [y] and [z], taken at [timestamp].
-  const new({
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.timestamp,
-  });
+  /// A reading of [x], [y] and [z].
+  const new({required this.x, required this.y, required this.z});
 
   /// Along the device's x axis, to the right.
   final double x;
@@ -17,7 +12,4 @@ class Reading {
 
   /// Along the device's z axis, out of the screen.
   final double z;
-
-  /// When the device took the reading, on the wall clock.
-  final DateTime timestamp;
 }
