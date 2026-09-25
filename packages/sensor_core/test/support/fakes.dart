@@ -6,9 +6,7 @@ class FakeSensorService implements SensorService {
   final Stream<Reading> readings;
 
   @override
-  Stream<Reading> accelerometer({
-    Duration samplingPeriod = const Duration(milliseconds: 200),
-  }) => readings;
+  Stream<Reading> accelerometer() => readings;
 }
 
 class FakePublication implements Publication {

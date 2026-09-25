@@ -18,23 +18,4 @@ void main() {
     final fields = readings.map((r) => (r.x, r.y, r.z)).toList();
     expect(fields, [(0.1, 9.8, 0.2)]);
   });
-
-  test('the sampling period is passed on as asked', () async {
-    // A stand-in for the plugin's function that records the period it gets.
-    Duration? requested;
-    final service = DeviceSensorService(
-      events: ({samplingPeriod = SensorInterval.normalInterval}) {
-        requested = samplingPeriod;
-        return const Stream.empty();
-      },
-    );
-
-    // The code to implement: the period passed on to the plugin.
-    await service
-        .accelerometer(samplingPeriod: const Duration(milliseconds: 50))
-        .toList();
-
-    // The claim: the plugin was asked for the period the node asked for.
-    expect(requested, const Duration(milliseconds: 50));
-  });
 }
