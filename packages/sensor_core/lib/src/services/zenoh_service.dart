@@ -40,16 +40,16 @@ class ZenohService {
   final _publications = <Publication>[];
 
   /// Opens the session with the settings. When this returns, each connection
-  /// they ask for is made, or its first attempt has failed and zenoh keeps
-  /// retrying it.
+  /// they ask for is made, or the wait set by `scouting/delay` has run out,
+  /// and zenoh keeps retrying the connections not made yet.
   Future<void> open() async {
     _session = await Session.open(config: _config());
   }
 
-  /// The session's identity: up to thirty-two hexadecimal characters.
+  /// The session's id: up to thirty-two hexadecimal characters.
   String get zid => _opened.zid.toHexString();
 
-  /// The identities of the peers this session is connected to.
+  /// The ids of the peers this session is connected to.
   List<String> get peerIds =>
       _opened.peersZid().map((id) => id.toHexString()).toList();
 

@@ -18,37 +18,36 @@ void main() {
     await sensorNode.open();
     await collectorNode.open();
 
-    // The claim: each one's peers hold the other's identity, and the two
-    // identities differ.
+    // The claim: each one's peers hold the other's id, and the two ids differ.
     expect(collectorNode.peerIds, contains(sensorNode.zid));
     expect(sensorNode.peerIds, contains(collectorNode.zid));
     expect(collectorNode.zid, isNot(sensorNode.zid));
   });
 
-  test('a service has an identity once it is open', () async {
+  test('a service has an id once it is open', () async {
     // The sensor node's end, closed when the test ends.
     final sensorNode = ZenohService(SessionSettings.sensorNode());
     addTearDown(sensorNode.dispose);
 
-    // The code to implement: an identity, once the service is open.
+    // The code to implement: an id, once the service is open.
     await sensorNode.open();
 
-    // The claim: the identity is not empty.
+    // The claim: the id is not empty.
     expect(sensorNode.zid, isNotEmpty);
   });
 
-  test('two services have different identities', () async {
+  test('two services have different ids', () async {
     // Two ends, closed when the test ends.
     final sensorNode = ZenohService(SessionSettings.sensorNode());
     final collectorNode = ZenohService(SessionSettings.collectorNode());
     addTearDown(sensorNode.dispose);
     addTearDown(collectorNode.dispose);
 
-    // The code to implement: each open service gets its own identity.
+    // The code to implement: each open service gets its own id.
     await sensorNode.open();
     await collectorNode.open();
 
-    // The claim: the two identities differ.
+    // The claim: the two ids differ.
     expect(collectorNode.zid, isNot(sensorNode.zid));
   });
 
@@ -58,7 +57,7 @@ void main() {
     final sensorSettings = SessionSettings.sensorNode().asJson5;
     final collectorSettings = SessionSettings.collectorNode().asJson5;
 
-    // The claim: every session is a peer that neither scouts nor gossips.
+    // The claim: both sides are peers that neither scout nor gossip.
     for (final settings in [sensorSettings, collectorSettings]) {
       expect(settings, containsPair('mode', '"peer"'));
       expect(settings, containsPair('scouting/multicast/enabled', 'false'));
@@ -87,7 +86,7 @@ void main() {
 
     await collectorNode.open();
 
-    // The claim: the session opens, and finds no one.
+    // The claim: the session opens, with no peers.
     expect(collectorNode.peerIds, isEmpty);
   });
 
@@ -103,8 +102,8 @@ void main() {
     expect(sensorNode.dispose, returnsNormally);
   });
 
-  test('asking an unopened service for its identity is an error', () {
-    // A rule of the pattern: an unopened service has no identity to give.
+  test('asking an unopened service for its id is an error', () {
+    // A rule of the pattern: an unopened service has no id to give.
     final sensorNode = ZenohService(SessionSettings.sensorNode());
 
     // The claim: asking throws a StateError.

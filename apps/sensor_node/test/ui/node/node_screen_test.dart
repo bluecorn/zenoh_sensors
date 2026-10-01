@@ -10,7 +10,7 @@ void main() {
   testWidgets('the screen shows the latest reading and the count', (
     tester,
   ) async {
-    // Stand-in: a view model that holds a fixed state.
+    // A fake: a view model that holds a fixed state.
     final container = ProviderContainer.test(
       overrides: [
         nodeViewModelProvider.overrideWith(

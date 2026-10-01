@@ -17,7 +17,7 @@ class SessionSettings {
     connectEndpoints: [nodeEndpoint],
   );
 
-  /// Where the sensor node waits: the loopback, port 7447.
+  /// Where the sensor node listens: the loopback, port 7447.
   static const nodeEndpoint = 'tcp/127.0.0.1:7447';
 
   /// The endpoints the session listens on.

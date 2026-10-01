@@ -24,7 +24,7 @@ void main() {
     subscriber.stream.listen(received.add);
 
     // The code to implement: a repository that publishes one reading
-    // from a stand-in sensor, through the node's session.
+    // from a fake sensor, through the node's session.
     const reading = Reading(x: 0, y: 9.776, z: 0.812);
     final sensor = FakeSensorService(Stream.value(reading));
     final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
@@ -42,7 +42,7 @@ void main() {
   });
 
   test('the phone publishes on sensor/phone/accel', () async {
-    // Stand-ins: a service that records what is declared on it, and a
+    // Fakes: a service that records what is declared on it, and a
     // sensor with nothing to deliver.
     final zenoh = FakeZenohService();
     final sensor = FakeSensorService(const Stream.empty());
@@ -57,7 +57,7 @@ void main() {
   });
 
   test('a node named sim publishes on sensor/sim/accel', () async {
-    // Stand-ins: a service that records what is declared on it, and a
+    // Fakes: a service that records what is declared on it, and a
     // sensor with nothing to deliver.
     final zenoh = FakeZenohService();
     final sensor = FakeSensorService(const Stream.empty());
@@ -72,7 +72,7 @@ void main() {
   });
 
   test('a reading is put as x,y,z to three decimals and handed on', () async {
-    // Stand-ins: a service that records what is put through it, and a
+    // Fakes: a service that records what is put through it, and a
     // sensor that delivers one reading.
     final zenoh = FakeZenohService();
     const reading = Reading(x: 0, y: 9.776, z: 0.812);
@@ -89,7 +89,7 @@ void main() {
   });
 
   test('cancelling the stream closes the publication', () async {
-    // Stand-ins: a service that records what is closed, and a sensor that
+    // Fakes: a service that records what is closed, and a sensor that
     // stays quiet, as a real one does between readings.
     final zenoh = FakeZenohService();
     final readings = StreamController<Reading>();

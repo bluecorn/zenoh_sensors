@@ -6,7 +6,7 @@ import 'package:sensor_node/ui/node/node_view_model.dart';
 
 void main() {
   test('the view model keeps the latest reading and counts them', () async {
-    // Stand-in: the readings provider, overridden with two readings, so
+    // A fake: the readings provider, overridden with two readings, so
     // nothing below the view model is built.
     const first = Reading(x: 0, y: 9.776, z: 0.812);
     const second = Reading(x: 0, y: 0, z: 9.81);
