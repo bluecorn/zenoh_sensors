@@ -151,8 +151,10 @@ void main() {
       final collector = await openCollector();
       addTearDown(collector.close);
 
-      // A put before anyone subscribes.
+      // A put before anyone subscribes, given time to cross before the
+      // subscriber exists.
       publication.put('before');
+      await Future<void>.delayed(delivery);
 
       // Subscribe late. Wait once for the declaration to reach the node's
       // side, and once for the next put to arrive.
