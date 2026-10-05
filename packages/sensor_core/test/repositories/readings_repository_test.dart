@@ -40,4 +40,66 @@ void main() {
       [0, 9.776, 0.812],
     ]);
   });
+
+  test('the collector subscribes to sensor/phone/accel', () async {
+    // A fake: a service that records what is declared on it.
+    final zenoh = FakeZenohService();
+
+    // The code to implement: listening declares the subscription.
+    final repository = ReadingsRepository(zenoh, nodeName: 'phone');
+    final listening = repository.readings().listen((_) {});
+    addTearDown(listening.cancel);
+
+    // The claim: one subscription, on the phone's key.
+    final keys = zenoh.subscriptions.map((s) => s.keyExpr).toList();
+    expect(keys, ['sensor/phone/accel']);
+  });
+
+  test('a collector of the node sim subscribes to sensor/sim/accel', () async {
+    // A fake: a service that records what is declared on it.
+    final zenoh = FakeZenohService();
+
+    // The code to implement: the key built from the node's name.
+    final repository = ReadingsRepository(zenoh, nodeName: 'sim');
+    final listening = repository.readings().listen((_) {});
+    addTearDown(listening.cancel);
+
+    // The claim: one subscription, on the sim node's key.
+    final keys = zenoh.subscriptions.map((s) => s.keyExpr).toList();
+    expect(keys, ['sensor/sim/accel']);
+  });
+
+  test('a payload x,y,z arrives as a reading', () async {
+    // A fake: a service whose subscription plays what the test puts into it.
+    final zenoh = FakeZenohService();
+    final repository = ReadingsRepository(zenoh, nodeName: 'phone');
+    final received = <Reading>[];
+    final listening = repository.readings().listen(received.add);
+    addTearDown(listening.cancel);
+
+    // The code to implement: each payload parsed back into a reading.
+    zenoh.subscriptions.single.arrivals.add('0.000,9.776,0.812');
+    await pumpEventQueue();
+
+    // The claim: one reading, with the three values of the text.
+    final values = received.map((r) => [r.x, r.y, r.z]).toList();
+    expect(values, [
+      [0, 9.776, 0.812],
+    ]);
+  });
+
+  test('cancelling the stream closes the subscription', () async {
+    // A fake: a service that records what is closed, whose subscription
+    // stays quiet, as a real one does between readings.
+    final zenoh = FakeZenohService();
+    final repository = ReadingsRepository(zenoh, nodeName: 'phone');
+
+    // The code to implement: a cancel that closes the subscription, even
+    // while nothing arrives.
+    final listening = repository.readings().listen((_) {});
+    await listening.cancel();
+
+    // The claim: the subscription the repository declared is closed.
+    expect(zenoh.subscriptions.single.isClosed, isTrue);
+  });
 }
