@@ -1,24 +1,20 @@
 import 'dart:io';
 
-import 'package:riverpod/riverpod.dart';
+import 'package:args/command_runner.dart';
 import 'package:sensor_core/sensor_core.dart';
-import 'package:sensorctl/config/providers.dart';
+import 'package:sensorctl/ui/watch/watch_command.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> arguments) async {
   initZenohLogging('error');
 
-  final container = ProviderContainer();
+  final runner = CommandRunner<void>(
+    'sensorctl',
+    'Watch, query and command the zenoh sensor network from a terminal.',
+  )..addCommand(WatchCommand());
   try {
-    final service = container.read(zenohServiceProvider);
-    await service.open();
-    stdout.writeln('sensorctl is ${service.zid}');
-    final peers = service.peerIds;
-    final noun = peers.length == 1 ? 'peer' : 'peers';
-    stdout.writeln('connected to ${peers.length} $noun:');
-    for (final peer in peers) {
-      stdout.writeln('  $peer');
-    }
-  } finally {
-    container.dispose();
+    await runner.run(arguments);
+  } on UsageException catch (error) {
+    stderr.writeln(error);
+    exitCode = 64;
   }
 }

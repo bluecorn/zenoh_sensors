@@ -9,6 +9,7 @@ resolution: workspace
 
 dependencies:
   args: ^2.7.0
+  dart_console: ^5.1.0
   riverpod: ^3.4.3
   sensor_core: ^1.0.0
   zenoh_dart: ^1.0.0-rc.1

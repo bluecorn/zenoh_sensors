@@ -13,5 +13,19 @@ final zenohServiceProvider = Provider<ZenohService>((ref) {
   return service;
 });
 
-/// The readings that arrive. This first version yields none.
-final readingsProvider = StreamProvider<Reading>((ref) => const Stream.empty());
+/// The collector's repository: the phone's readings, on `sensor/phone/accel`.
+final readingsRepositoryProvider = Provider<ReadingsRepository>(
+  (ref) =>
+      ReadingsRepository(ref.watch(zenohServiceProvider), nodeName: 'phone'),
+);
+
+/// The session, opened once; what depends on it waits for this.
+final sessionProvider = FutureProvider<void>(
+  (ref) => ref.watch(zenohServiceProvider).open(),
+);
+
+/// The readings that arrive, once the session is open.
+final readingsProvider = StreamProvider<Reading>((ref) async* {
+  await ref.watch(sessionProvider.future);
+  yield* ref.watch(readingsRepositoryProvider).readings();
+});
