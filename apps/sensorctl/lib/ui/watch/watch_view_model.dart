@@ -1,4 +1,6 @@
+import 'package:riverpod/riverpod.dart';
 import 'package:sensor_core/sensor_core.dart';
+import 'package:sensorctl/config/providers.dart';
 
 /// What `watch` shows: the latest reading, and how many there were.
 class WatchState {
@@ -11,3 +13,21 @@ class WatchState {
   /// How many readings have arrived.
   final int count;
 }
+
+/// Keeps the latest reading and counts them, for `watch`.
+class WatchViewModel extends Notifier<WatchState> {
+  @override
+  WatchState build() {
+    ref.listen(readingsProvider, (_, next) {
+      if (next case AsyncData(:final value)) {
+        state = WatchState(latest: value, count: state.count + 1);
+      }
+    });
+    return const WatchState();
+  }
+}
+
+/// The view model of `watch`.
+final watchViewModelProvider = NotifierProvider<WatchViewModel, WatchState>(
+  WatchViewModel.new,
+);

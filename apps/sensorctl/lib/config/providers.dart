@@ -12,3 +12,6 @@ final zenohServiceProvider = Provider<ZenohService>((ref) {
   ref.onDispose(service.dispose);
   return service;
 });
+
+/// The readings that arrive. This first version yields none.
+final readingsProvider = StreamProvider<Reading>((ref) => const Stream.empty());
