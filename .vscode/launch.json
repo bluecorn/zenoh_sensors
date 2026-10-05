@@ -24,11 +24,12 @@
       ]
     },
     {
-      "name": "sensorctl",
+      "name": "sensorctl watch",
       "type": "dart",
       "request": "launch",
       "program": "${workspaceFolder}/apps/sensorctl/bin/sensorctl.dart",
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "args": ["watch"]
     },
     {
       "name": "sensor_node",

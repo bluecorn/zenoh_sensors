@@ -232,4 +232,33 @@ void main() {
     // The claim: the same text arrives.
     expect(received, ['0.000,9.776,0.812']);
   });
+
+  test('disposing the service closes its subscriptions', () async {
+    // A rule of the pattern: dispose closes what the service declared.
+    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    await collectorNode.open();
+    final subscription = collectorNode.declareSubscription(
+      'sensor/phone/accel',
+    );
+
+    collectorNode.dispose();
+
+    // The claim: the subscription's stream ends, because the subscriber
+    // underneath is closed.
+    expect(subscription.payloads, emitsDone);
+  });
+
+  test('closing a subscription twice is safe', () async {
+    // A rule of the pattern, which the repository's cancel and the
+    // service's dispose both rely on.
+    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    addTearDown(collectorNode.dispose);
+    await collectorNode.open();
+    final subscription = collectorNode.declareSubscription('sensor/phone/accel')
+      ..close();
+
+    // The claim: the second close returns normally.
+    expect(subscription.close, returnsNormally);
+  });
 }
+
