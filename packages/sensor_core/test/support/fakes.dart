@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sensor_core/sensor_core.dart';
 
 class FakeSensorService implements SensorService {
@@ -23,14 +25,36 @@ class FakePublication implements Publication {
   void close() => isClosed = true;
 }
 
+class FakeSubscription implements Subscription {
+  new(this.keyExpr);
+
+  final String keyExpr;
+  final arrivals = StreamController<String>();
+  bool isClosed = false;
+
+  @override
+  Stream<String> get payloads => arrivals.stream;
+
+  @override
+  void close() => isClosed = true;
+}
+
 class FakeZenohService implements ZenohService {
   final publications = <FakePublication>[];
+  final subscriptions = <FakeSubscription>[];
 
   @override
   Publication declarePublication(String keyExpr) {
     final publication = FakePublication(keyExpr);
     publications.add(publication);
     return publication;
+  }
+
+  @override
+  Subscription declareSubscription(String keyExpr) {
+    final subscription = FakeSubscription(keyExpr);
+    subscriptions.add(subscription);
+    return subscription;
   }
 
   @override

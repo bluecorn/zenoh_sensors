@@ -1,8 +1,8 @@
 import 'package:sensor_core/sensor_core.dart';
 import 'package:zenoh_dart/zenoh.dart';
 
-/// A collector opened with the package directly, as `z_sub` is on the laptop.
-/// There is no collector-side service until chapter 3.
+/// A collector opened with the package directly, as `z_sub` is on the laptop:
+/// a witness that does not go through the service it checks.
 Future<Session> openCollector() {
   final config = Config();
   SessionSettings.collectorNode().asJson5.forEach(config.insertJson5);

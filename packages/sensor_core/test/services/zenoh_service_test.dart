@@ -199,4 +199,37 @@ void main() {
     // The claim: the second close returns normally.
     expect(publication.close, returnsNormally);
   });
+
+  test('a subscription receives the text a publication puts', () async {
+    // The node's end: its session, from the settings that listen.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    addTearDown(sensorNode.dispose);
+    await sensorNode.open();
+
+    // The laptop's end: a collector's session, from the settings that
+    // connect.
+    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    addTearDown(collectorNode.dispose);
+    await collectorNode.open();
+
+    // The new contract to implement: declare a subscription on a key, then
+    // collect the text that arrives through it.
+    final subscription = collectorNode.declareSubscription(
+      'sensor/phone/accel',
+    );
+    final received = <String>[];
+    subscription.payloads.listen(received.add);
+    // The declaration travels to the node, so give it time to arrive.
+    await Future<void>.delayed(delivery);
+
+    // The node puts text through a publication.
+    sensorNode
+        .declarePublication('sensor/phone/accel')
+        .put('0.000,9.776,0.812');
+    // A put returns before the sample arrives, so give it time to cross.
+    await Future<void>.delayed(delivery);
+
+    // The claim: the same text arrives.
+    expect(received, ['0.000,9.776,0.812']);
+  });
 }

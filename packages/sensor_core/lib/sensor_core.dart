@@ -2,6 +2,7 @@
 library;
 
 export 'src/domain/reading.dart';
+export 'src/repositories/readings_repository.dart';
 export 'src/repositories/sensor_node_repository.dart';
 export 'src/services/sensor_service.dart';
 export 'src/services/session_settings.dart';

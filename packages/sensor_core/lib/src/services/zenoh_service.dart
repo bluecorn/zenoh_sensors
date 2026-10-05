@@ -27,8 +27,23 @@ class Publication {
   void close() => _publisher.close();
 }
 
+/// A declared subscriber on one key expression, as the service hands it out:
+/// the payload of each sample, as text.
+class Subscription {
+  new _(this._subscriber);
+
+  final Subscriber _subscriber;
+
+  /// The payload of every sample that arrives, as text, in order of arrival.
+  Stream<String> get payloads =>
+      _subscriber.stream.map((sample) => sample.payload);
+
+  /// Undeclares the subscriber. Safe to call twice.
+  void close() => _subscriber.close();
+}
+
 /// The owner of the zenoh session. It hands upward only plain Dart values and
-/// its own [Publication]s.
+/// its own [Publication]s and [Subscription]s.
 class ZenohService {
   /// A service for one role's [settings]. Nothing opens until [open].
   new(this.settings);
@@ -38,6 +53,7 @@ class ZenohService {
 
   Session? _session;
   final _publications = <Publication>[];
+  final _subscriptions = <Subscription>[];
 
   /// Opens the session with the settings. When this returns, each connection
   /// they ask for is made, or the wait set by `scouting/delay` has run out,
@@ -60,13 +76,24 @@ class ZenohService {
     return publication;
   }
 
-  /// Closes the publications and the session. Safe before [open], and more
-  /// than once.
+  /// Declares a subscriber on [keyExpr]. The service closes it on [dispose].
+  Subscription declareSubscription(String keyExpr) {
+    final subscription = Subscription._(_opened.declareSubscriber(keyExpr));
+    _subscriptions.add(subscription);
+    return subscription;
+  }
+
+  /// Closes the publications, the subscriptions and the session. Safe before
+  /// [open], and more than once.
   void dispose() {
     for (final publication in _publications) {
       publication.close();
     }
     _publications.clear();
+    for (final subscription in _subscriptions) {
+      subscription.close();
+    }
+    _subscriptions.clear();
     _session?.close();
     _session = null;
   }
