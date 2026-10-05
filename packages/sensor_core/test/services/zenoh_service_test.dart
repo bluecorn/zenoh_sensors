@@ -123,6 +123,8 @@ void main() {
     addTearDown(subscriber.close);
     final received = <Sample>[];
     subscriber.stream.listen(received.add);
+    // The declaration travels to the node, so give it time to arrive.
+    await Future<void>.delayed(delivery);
 
     // The new contract to implement: declare a publication on a key,
     // then put text through it.
