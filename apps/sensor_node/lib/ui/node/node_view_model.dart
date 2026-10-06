@@ -14,7 +14,8 @@ class NodeState {
   final int count;
 }
 
-/// Keeps the latest reading and counts them, for the node's screen.
+/// The view model behind the node's screen, which keeps the latest reading and
+/// counts the readings.
 class NodeViewModel extends Notifier<NodeState> {
   @override
   NodeState build() {

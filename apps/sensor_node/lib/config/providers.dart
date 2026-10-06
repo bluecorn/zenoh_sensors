@@ -7,7 +7,7 @@ final sessionSettingsProvider = Provider<SessionSettings>(
   (ref) => SessionSettings.sensorNode(),
 );
 
-/// The app's one zenoh session, disposed with the container.
+/// The app's one zenoh service, disposed with the container.
 final zenohServiceProvider = Provider<ZenohService>((ref) {
   final service = ZenohService(ref.watch(sessionSettingsProvider));
   ref.onDispose(service.dispose);
