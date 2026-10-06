@@ -14,7 +14,8 @@ class WatchState {
   final int count;
 }
 
-/// Keeps the latest reading and counts them, for `watch`.
+/// The view model behind `watch`, which keeps the latest reading and counts the
+/// readings.
 class WatchViewModel extends Notifier<WatchState> {
   @override
   WatchState build() {
