@@ -19,7 +19,7 @@ final sensorServiceProvider = Provider<SensorService>(
   (ref) => DeviceSensorService(),
 );
 
-/// The node's repository: this phone's readings, on `sensor/phone/accel`.
+/// The node's repository: this phone's sensors, each on its own key.
 final sensorNodeRepositoryProvider = Provider<SensorNodeRepository>(
   (ref) => SensorNodeRepository(
     ref.watch(zenohServiceProvider),
@@ -33,8 +33,12 @@ final sessionProvider = FutureProvider<void>(
   (ref) => ref.watch(zenohServiceProvider).open(),
 );
 
-/// The readings the node publishes, once the session is open.
+/// The readings the node publishes, once the session is open, without their
+/// keys.
 final readingsProvider = StreamProvider<Reading>((ref) async* {
   await ref.watch(sessionProvider.future);
-  yield* ref.watch(sensorNodeRepositoryProvider).publish();
+  yield* ref
+      .watch(sensorNodeRepositoryProvider)
+      .publish()
+      .map((keyed) => keyed.reading);
 });

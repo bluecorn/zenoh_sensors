@@ -35,42 +35,12 @@ void main() {
     await Future<void>.delayed(delivery);
 
     // The claim: one sample, on the exact key, as text, marked text/plain,
-    // and the reading handed on for the screen.
+    // and the reading handed on for the screen with that key.
     final keys = received.map((sample) => sample.keyExpr).toList();
     expect(keys, ['sensor/phone/accel']);
     expect(received.single.payload, '0.000,9.776,0.812');
     expect(received.single.encoding, 'text/plain');
-    expect(published, [reading]);
-  });
-
-  test('the phone publishes on sensor/phone/accel', () async {
-    // Fakes: a service that records what is declared on it, and a
-    // sensor with nothing to deliver.
-    final zenoh = FakeZenohService();
-    final sensor = FakeSensorService(const Stream.empty());
-
-    // The code to implement: the repository declares its publication.
-    final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
-    await repository.publish().toList();
-
-    // The claim: one publication, on the phone's key.
-    final keys = zenoh.publications.map((p) => p.keyExpr).toList();
-    expect(keys, ['sensor/phone/accel']);
-  });
-
-  test('a node named sim publishes on sensor/sim/accel', () async {
-    // Fakes: a service that records what is declared on it, and a
-    // sensor with nothing to deliver.
-    final zenoh = FakeZenohService();
-    final sensor = FakeSensorService(const Stream.empty());
-
-    // The code to implement: the key built from the node's name.
-    final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'sim');
-    await repository.publish().toList();
-
-    // The claim: one publication, on the sim node's key.
-    final keys = zenoh.publications.map((p) => p.keyExpr).toList();
-    expect(keys, ['sensor/sim/accel']);
+    expect(published, [(keyExpr: 'sensor/phone/accel', reading: reading)]);
   });
 
   test('a reading is put as x,y,z to three decimals and handed on', () async {
@@ -84,10 +54,14 @@ void main() {
     final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
     final published = await repository.publish().toList();
 
-    // The claim: the text put through the publication, and the same reading
-    // handed on.
-    expect(zenoh.publications.single.puts, ['0.000,9.776,0.812']);
-    expect(published, [reading]);
+    // The claim: the text put through the accelerometer's publication, nothing
+    // through the gyroscope's, and the same reading handed on with its key.
+    final puts = {for (final p in zenoh.publications) p.keyExpr: p.puts};
+    expect(puts, {
+      'sensor/phone/accel': ['0.000,9.776,0.812'],
+      'sensor/phone/gyro': <String>[],
+    });
+    expect(published, [(keyExpr: 'sensor/phone/accel', reading: reading)]);
   });
 
   test('cancelling the stream closes the publication', () async {
@@ -98,12 +72,107 @@ void main() {
     final sensor = FakeSensorService(readings.stream);
     final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
 
-    // The code to implement: a cancel that closes the publication, even
+    // The code to implement: a cancel that closes the publications, even
     // while the sensor is quiet.
     final subscription = repository.publish().listen((_) {});
     await subscription.cancel();
 
-    // The claim: the publication the repository declared is closed.
-    expect(zenoh.publications.single.isClosed, isTrue);
+    // The claim: both publications the repository declared are closed.
+    final closed = zenoh.publications.map((p) => p.isClosed).toList();
+    expect(closed, [true, true]);
+  });
+
+  test(
+    'the phone publishes on sensor/phone/accel and sensor/phone/gyro',
+    () async {
+      // Fakes: a service that records what is declared on it, and a
+      // sensor with nothing to deliver.
+      final zenoh = FakeZenohService();
+      final sensor = FakeSensorService(const Stream.empty());
+
+      // The code to implement: the repository declares one publication for
+      // each sensor.
+      final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
+      await repository.publish().toList();
+
+      // The claim: two publications, one on each of the phone's keys.
+      final keys = zenoh.publications.map((p) => p.keyExpr).toList();
+      expect(keys, ['sensor/phone/accel', 'sensor/phone/gyro']);
+    },
+  );
+
+  test(
+    'a node named sim publishes on sensor/sim/accel and sensor/sim/gyro',
+    () async {
+      // Fakes: a service that records what is declared on it, and a
+      // sensor with nothing to deliver.
+      final zenoh = FakeZenohService();
+      final sensor = FakeSensorService(const Stream.empty());
+
+      // The code to implement: both keys built from the node's name.
+      final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'sim');
+      await repository.publish().toList();
+
+      // The claim: two publications, one on each of the sim node's keys.
+      final keys = zenoh.publications.map((p) => p.keyExpr).toList();
+      expect(keys, ['sensor/sim/accel', 'sensor/sim/gyro']);
+    },
+  );
+
+  test(
+    'a gyroscope reading is put on sensor/phone/gyro and handed on',
+    () async {
+      // Fakes: a service that records what is put through it, and a sensor
+      // whose gyroscope delivers one reading while its accelerometer is quiet.
+      final zenoh = FakeZenohService();
+      const reading = Reading(x: 0, y: 0, z: 0.5);
+      final sensor = FakeSensorService(
+        const Stream.empty(),
+        gyroscope: Stream.value(reading),
+      );
+
+      // The new contract to implement: the gyroscope read through the sensor
+      // service. The code to implement: each of its readings put as text on
+      // the gyroscope's key, then handed on.
+      final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
+      final published = await repository.publish().toList();
+
+      // The claim: the text put through the gyroscope's publication, nothing
+      // through the accelerometer's, and the same reading handed on with its
+      // key.
+      final puts = {for (final p in zenoh.publications) p.keyExpr: p.puts};
+      expect(puts, {
+        'sensor/phone/accel': <String>[],
+        'sensor/phone/gyro': ['0.000,0.000,0.500'],
+      });
+      expect(published, [(keyExpr: 'sensor/phone/gyro', reading: reading)]);
+    },
+  );
+
+  test('each reading is handed on with its key', () async {
+    // Fakes: a service that records what is put through it, and a sensor
+    // that delivers one reading of each kind.
+    final zenoh = FakeZenohService();
+    const accel = Reading(x: 0, y: 9.776, z: 0.812);
+    const gyro = Reading(x: 0, y: 0, z: 0.5);
+    final sensor = FakeSensorService(
+      Stream.value(accel),
+      gyroscope: Stream.value(gyro),
+    );
+
+    // The code to implement: each reading handed on as a pair, with the key
+    // it was put on.
+    final repository = SensorNodeRepository(zenoh, sensor, nodeName: 'phone');
+    final published = await repository.publish().toList();
+
+    // The claim: each reading handed on under the key it was put on.
+    final byKey = {
+      for (final (:keyExpr, :reading) in published)
+        keyExpr: [reading.x, reading.y, reading.z],
+    };
+    expect(byKey, {
+      'sensor/phone/accel': [0, 9.776, 0.812],
+      'sensor/phone/gyro': [0, 0, 0.5],
+    });
   });
 }

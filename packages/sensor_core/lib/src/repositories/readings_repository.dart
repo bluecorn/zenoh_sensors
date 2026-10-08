@@ -17,8 +17,8 @@ class ReadingsRepository {
   /// The key expression the readings arrive on.
   final String keyExpr;
 
-  /// Every reading that arrives, parsed from `x,y,z`. Listening declares the
-  /// subscription; cancelling closes it.
+  /// Every reading that arrives, parsed from `x,y,z`, with the key it arrived
+  /// on. Listening declares the subscription; cancelling closes it.
   Stream<KeyedReading> readings() {
     late final Subscription subscription;
     late final StreamSubscription<String> listening;

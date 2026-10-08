@@ -17,4 +17,7 @@ class DeviceSensorService implements SensorService {
   @override
   Stream<Reading> accelerometer() =>
       _events().map((event) => Reading(x: event.x, y: event.y, z: event.z));
+
+  @override
+  Stream<Reading> gyroscope() => const Stream.empty();
 }
