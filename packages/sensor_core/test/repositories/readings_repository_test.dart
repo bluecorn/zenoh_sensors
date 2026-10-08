@@ -20,7 +20,7 @@ void main() {
     // The code to implement: a repository that receives the phone's
     // readings, collected into a list.
     final repository = ReadingsRepository(collectorNode, nodeName: 'phone');
-    final received = <Reading>[];
+    final received = <KeyedReading>[];
     final listening = repository.readings().listen(received.add);
     addTearDown(listening.cancel);
     // The declaration travels to the node, so give it time to arrive.
@@ -35,7 +35,9 @@ void main() {
     await Future<void>.delayed(delivery);
 
     // The claim: one reading arrives, with the three values it left with.
-    final values = received.map((r) => [r.x, r.y, r.z]).toList();
+    final values = received
+        .map((r) => [r.reading.x, r.reading.y, r.reading.z])
+        .toList();
     expect(values, [
       [0, 9.776, 0.812],
     ]);
@@ -73,7 +75,7 @@ void main() {
     // A fake: a service whose subscription plays what the test puts into it.
     final zenoh = FakeZenohService();
     final repository = ReadingsRepository(zenoh, nodeName: 'phone');
-    final received = <Reading>[];
+    final received = <KeyedReading>[];
     final listening = repository.readings().listen(received.add);
     addTearDown(listening.cancel);
 
@@ -82,7 +84,9 @@ void main() {
     await pumpEventQueue();
 
     // The claim: one reading, with the three values of the text.
-    final values = received.map((r) => [r.x, r.y, r.z]).toList();
+    final values = received
+        .map((r) => [r.reading.x, r.reading.y, r.reading.z])
+        .toList();
     expect(values, [
       [0, 9.776, 0.812],
     ]);
@@ -102,4 +106,52 @@ void main() {
     // The claim: the subscription the repository declared is closed.
     expect(zenoh.subscriptions.single.isClosed, isTrue);
   });
+
+  test(
+    "the collector receives each of the phone's sensors under its own key",
+    () async {
+      // The node's end: its session, from the settings that listen.
+      final sensorNode = ZenohService(SessionSettings.sensorNode());
+      addTearDown(sensorNode.dispose);
+      await sensorNode.open();
+
+      // The laptop's end: a collector's session, from the settings that
+      // connect.
+      final collectorNode = ZenohService(SessionSettings.collectorNode());
+      addTearDown(collectorNode.dispose);
+      await collectorNode.open();
+
+      // The code to implement: a repository that receives every sensor of the
+      // phone, each reading with the key it arrived on, collected into a list.
+      final repository = ReadingsRepository(collectorNode, nodeName: 'phone');
+      final received = <KeyedReading>[];
+      final listening = repository.readings().listen(received.add);
+      addTearDown(listening.cancel);
+      // The declaration travels to the node, so give it time to arrive.
+      await Future<void>.delayed(delivery);
+
+      // The node's code publishes one reading of each sensor from a fake
+      // sensor.
+      const accel = Reading(x: 0, y: 9.776, z: 0.812);
+      const gyro = Reading(x: 0, y: 0, z: 0.5);
+      final sensor = FakeSensorService(
+        Stream.value(accel),
+        gyroscope: Stream.value(gyro),
+      );
+      final node = SensorNodeRepository(sensorNode, sensor, nodeName: 'phone');
+      await node.publish().toList();
+      // A put returns before the sample arrives, so give it time to cross.
+      await Future<void>.delayed(delivery);
+
+      // The claim: each sensor's reading arrives under that sensor's key.
+      final byKey = {
+        for (final (:keyExpr, :reading) in received)
+          keyExpr: [reading.x, reading.y, reading.z],
+      };
+      expect(byKey, {
+        'sensor/phone/accel': [0, 9.776, 0.812],
+        'sensor/phone/gyro': [0, 0, 0.5],
+      });
+    },
+  );
 }

@@ -19,14 +19,14 @@ class ReadingsRepository {
 
   /// Every reading that arrives, parsed from `x,y,z`. Listening declares the
   /// subscription; cancelling closes it.
-  Stream<Reading> readings() {
+  Stream<KeyedReading> readings() {
     late final Subscription subscription;
     late final StreamSubscription<String> listening;
-    final controller = StreamController<Reading>();
+    final controller = StreamController<KeyedReading>();
     controller.onListen = () {
       subscription = zenoh.declareSubscription(keyExpr);
       listening = subscription.payloads.listen(
-        (text) => controller.add(_asReading(text)),
+        (text) => controller.add((keyExpr: '', reading: _asReading(text))),
       );
     };
     controller.onCancel = () async {

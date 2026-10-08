@@ -13,3 +13,6 @@ class Reading {
   /// Along the device's z axis, out of the screen.
   final double z;
 }
+
+/// A reading and the key expression it travels on.
+typedef KeyedReading = ({String keyExpr, Reading reading});

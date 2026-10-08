@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:sensor_core/sensor_core.dart';
 
 class FakeSensorService implements SensorService {
-  new(this.readings);
+  new(this.readings, {this.gyroscope = const Stream.empty()});
 
   final Stream<Reading> readings;
+  final Stream<Reading> gyroscope;
 
   @override
   Stream<Reading> accelerometer() => readings;
