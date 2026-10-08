@@ -43,34 +43,6 @@ void main() {
     ]);
   });
 
-  test('the collector subscribes to sensor/phone/accel', () async {
-    // A fake: a service that records what is declared on it.
-    final zenoh = FakeZenohService();
-
-    // The code to implement: listening declares the subscription.
-    final repository = ReadingsRepository(zenoh, nodeName: 'phone');
-    final listening = repository.readings().listen((_) {});
-    addTearDown(listening.cancel);
-
-    // The claim: one subscription, on the phone's key.
-    final keys = zenoh.subscriptions.map((s) => s.keyExpr).toList();
-    expect(keys, ['sensor/phone/accel']);
-  });
-
-  test('a collector of the node sim subscribes to sensor/sim/accel', () async {
-    // A fake: a service that records what is declared on it.
-    final zenoh = FakeZenohService();
-
-    // The code to implement: the key built from the node's name.
-    final repository = ReadingsRepository(zenoh, nodeName: 'sim');
-    final listening = repository.readings().listen((_) {});
-    addTearDown(listening.cancel);
-
-    // The claim: one subscription, on the sim node's key.
-    final keys = zenoh.subscriptions.map((s) => s.keyExpr).toList();
-    expect(keys, ['sensor/sim/accel']);
-  });
-
   test('a payload x,y,z arrives as a reading', () async {
     // A fake: a service whose subscription plays what the test puts into it.
     final zenoh = FakeZenohService();
@@ -80,7 +52,10 @@ void main() {
     addTearDown(listening.cancel);
 
     // The code to implement: each payload parsed back into a reading.
-    zenoh.subscriptions.single.arrivals.add('0.000,9.776,0.812');
+    zenoh.subscriptions.single.arrivals.add((
+      keyExpr: 'sensor/phone/accel',
+      payload: '0.000,9.776,0.812',
+    ));
     await pumpEventQueue();
 
     // The claim: one reading, with the three values of the text.
@@ -154,4 +129,61 @@ void main() {
       });
     },
   );
+
+  test('a reading is handed on with the key it arrived on', () async {
+    // A fake: a service whose subscription plays what the test puts into it,
+    // a sample with its key.
+    final zenoh = FakeZenohService();
+    final repository = ReadingsRepository(zenoh, nodeName: 'phone');
+    final received = <KeyedReading>[];
+    final listening = repository.readings().listen(received.add);
+    addTearDown(listening.cancel);
+
+    // The code to implement: the key read from the sample, and handed on with
+    // the reading.
+    zenoh.subscriptions.single.arrivals.add((
+      keyExpr: 'sensor/phone/gyro',
+      payload: '0.000,0.000,0.500',
+    ));
+    await pumpEventQueue();
+
+    // The claim: the reading arrives under the key of the sample.
+    final byKey = {
+      for (final (:keyExpr, :reading) in received)
+        keyExpr: [reading.x, reading.y, reading.z],
+    };
+    expect(byKey, {
+      'sensor/phone/gyro': [0, 0, 0.5],
+    });
+  });
+
+  test('the collector subscribes to sensor/phone/*', () async {
+    // A fake: a service that records what is declared on it.
+    final zenoh = FakeZenohService();
+
+    // The code to implement: one subscription for every sensor of the phone.
+    final repository = ReadingsRepository(zenoh, nodeName: 'phone');
+    final listening = repository.readings().listen((_) {});
+    addTearDown(listening.cancel);
+
+    // The claim: one subscription, on the expression that matches each of the
+    // phone's keys.
+    final keys = zenoh.subscriptions.map((s) => s.keyExpr).toList();
+    expect(keys, ['sensor/phone/*']);
+  });
+
+  test('a collector of the node sim subscribes to sensor/sim/*', () async {
+    // A fake: a service that records what is declared on it.
+    final zenoh = FakeZenohService();
+
+    // The code to implement: the expression built from the node's name.
+    final repository = ReadingsRepository(zenoh, nodeName: 'sim');
+    final listening = repository.readings().listen((_) {});
+    addTearDown(listening.cancel);
+
+    // The claim: one subscription, on the expression that matches each of the
+    // sim node's keys.
+    final keys = zenoh.subscriptions.map((s) => s.keyExpr).toList();
+    expect(keys, ['sensor/sim/*']);
+  });
 }

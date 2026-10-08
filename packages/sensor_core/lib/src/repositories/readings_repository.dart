@@ -6,27 +6,30 @@ import 'package:sensor_core/src/services/zenoh_service.dart';
 /// The collector's side of the readings: it owns the key expression and turns
 /// what arrives back into readings.
 class ReadingsRepository {
-  /// A repository receiving, through [zenoh], the readings of the node called
-  /// [nodeName].
-  new(this.zenoh, {required String nodeName})
-    : keyExpr = 'sensor/$nodeName/accel';
+  /// A repository receiving, through [zenoh], the readings of every sensor of
+  /// the node called [nodeName].
+  new(this.zenoh, {required String nodeName}) : keyExpr = 'sensor/$nodeName/*';
 
   /// The service the readings arrive through.
   final ZenohService zenoh;
 
-  /// The key expression the readings arrive on.
+  /// The key expression the subscription is declared on: one segment for the
+  /// sensor, so it matches each of the node's keys.
   final String keyExpr;
 
   /// Every reading that arrives, parsed from `x,y,z`, with the key it arrived
   /// on. Listening declares the subscription; cancelling closes it.
   Stream<KeyedReading> readings() {
     late final Subscription subscription;
-    late final StreamSubscription<String> listening;
+    late final StreamSubscription<KeyedPayload> listening;
     final controller = StreamController<KeyedReading>();
     controller.onListen = () {
       subscription = zenoh.declareSubscription(keyExpr);
-      listening = subscription.payloads.listen(
-        (text) => controller.add((keyExpr: '', reading: _asReading(text))),
+      listening = subscription.samples.listen(
+        (sample) => controller.add((
+          keyExpr: sample.keyExpr,
+          reading: _asReading(sample.payload),
+        )),
       );
     };
     controller.onCancel = () async {

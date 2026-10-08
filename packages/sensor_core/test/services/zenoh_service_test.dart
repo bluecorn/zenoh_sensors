@@ -260,4 +260,95 @@ void main() {
     // The claim: the second close returns normally.
     expect(subscription.close, returnsNormally);
   });
+
+  test('a sample arrives with the key it was put on', () async {
+    // The node's end: its session, from the settings that listen.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    addTearDown(sensorNode.dispose);
+    await sensorNode.open();
+
+    // The laptop's end: a collector's session, from the settings that
+    // connect.
+    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    addTearDown(collectorNode.dispose);
+    await collectorNode.open();
+
+    // The new contract to implement: the samples a subscription hands up,
+    // each the key it was put on and its payload as text.
+    final subscription = collectorNode.declareSubscription(
+      'sensor/phone/accel',
+    );
+    final received = <KeyedPayload>[];
+    subscription.samples.listen(received.add);
+    // The declaration travels to the node, so give it time to arrive.
+    await Future<void>.delayed(delivery);
+
+    // The node puts text through a publication on that key.
+    sensorNode
+        .declarePublication('sensor/phone/accel')
+        .put('0.000,9.776,0.812');
+    // A put returns before the sample arrives, so give it time to cross.
+    await Future<void>.delayed(delivery);
+
+    // The claim: the sample arrives with the key it was put on.
+    expect(received, [
+      (keyExpr: 'sensor/phone/accel', payload: '0.000,9.776,0.812'),
+    ]);
+  });
+
+  test('a subscriber to sensor/phone/* receives the key of the put', () async {
+    // The node's end: its session, from the settings that listen.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    addTearDown(sensorNode.dispose);
+    await sensorNode.open();
+
+    // The laptop's end: a collector's session, from the settings that
+    // connect.
+    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    addTearDown(collectorNode.dispose);
+    await collectorNode.open();
+
+    // The code to implement: the key of each sample read from the sample.
+    // The subscription's own expression names a set of keys.
+    final subscription = collectorNode.declareSubscription('sensor/phone/*');
+    final received = <KeyedPayload>[];
+    subscription.samples.listen(received.add);
+    // The declaration travels to the node, so give it time to arrive.
+    await Future<void>.delayed(delivery);
+
+    // The node puts text on one key of that set.
+    sensorNode.declarePublication('sensor/phone/gyro').put('0.000,0.000,0.500');
+    // A put returns before the sample arrives, so give it time to cross.
+    await Future<void>.delayed(delivery);
+
+    // The claim: the sample arrives with the key of the put, not with the
+    // subscription's expression.
+    expect(received, [
+      (keyExpr: 'sensor/phone/gyro', payload: '0.000,0.000,0.500'),
+    ]);
+  });
+
+  test('a wildcard stands for one segment of a key', () async {
+    // A pin about zenoh: what a subscription on sensor/phone/* leaves out.
+    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    addTearDown(sensorNode.dispose);
+    await sensorNode.open();
+    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    addTearDown(collectorNode.dispose);
+    await collectorNode.open();
+    final subscription = collectorNode.declareSubscription('sensor/phone/*');
+    final received = <String>[];
+    subscription.samples.listen((sample) => received.add(sample.keyExpr));
+    // The declaration travels to the node, so give it time to arrive.
+    await Future<void>.delayed(delivery);
+
+    // The node puts on a key of three segments, and on one of four.
+    sensorNode.declarePublication('sensor/phone/gyro').put('in');
+    sensorNode.declarePublication('sensor/phone/gyro/raw').put('too deep');
+    // A put returns before the sample arrives, so give it time to cross.
+    await Future<void>.delayed(delivery);
+
+    // The claim: only the key of three segments arrives.
+    expect(received, ['sensor/phone/gyro']);
+  });
 }

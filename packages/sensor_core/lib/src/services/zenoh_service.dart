@@ -27,16 +27,24 @@ class Publication {
   void close() => _publisher.close();
 }
 
+/// A sample as the service hands it up: the key expression it was put on, and
+/// its payload as text.
+typedef KeyedPayload = ({String keyExpr, String payload});
+
 /// A declared subscriber on one key expression, as the service hands it out:
-/// the payload of each sample, as text.
+/// each sample as the key it was put on and its payload as text.
 class Subscription {
   new _(this._subscriber);
 
   final Subscriber _subscriber;
 
+  /// Every sample that arrives, with its key, in order of arrival.
+  Stream<KeyedPayload> get samples => _subscriber.stream.map(
+    (sample) => (keyExpr: sample.keyExpr, payload: sample.payload),
+  );
+
   /// The payload of every sample that arrives, as text, in order of arrival.
-  Stream<String> get payloads =>
-      _subscriber.stream.map((sample) => sample.payload);
+  Stream<String> get payloads => samples.map((sample) => sample.payload);
 
   /// Undeclares the subscriber. Safe to call twice.
   void close() => _subscriber.close();

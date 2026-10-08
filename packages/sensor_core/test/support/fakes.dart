@@ -33,11 +33,14 @@ class FakeSubscription implements Subscription {
   new(this.keyExpr);
 
   final String keyExpr;
-  final arrivals = StreamController<String>();
+  final arrivals = StreamController<KeyedPayload>();
   bool isClosed = false;
 
   @override
-  Stream<String> get payloads => arrivals.stream;
+  Stream<KeyedPayload> get samples => arrivals.stream;
+
+  @override
+  Stream<String> get payloads => samples.map((sample) => sample.payload);
 
   @override
   void close() => isClosed = true;

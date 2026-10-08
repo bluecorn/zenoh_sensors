@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensor_node/ui/node/node_view_model.dart';
 
-/// The node's one screen: the latest reading to three decimals, and the count.
+/// The node's one screen: a block for each key, with the key, its latest
+/// reading to three decimals, and its count.
 class NodeScreen extends ConsumerWidget {
   /// The screen; it watches [nodeViewModelProvider].
   const new({super.key});
@@ -10,18 +11,26 @@ class NodeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final node = ref.watch(nodeViewModelProvider);
-    final latest = node.latest;
     return Scaffold(
       body: Center(
         child: DefaultTextStyle.merge(
           style: Theme.of(context).textTheme.headlineSmall,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            spacing: 24,
             children: [
-              Text('x ${_fixed(latest?.x)}'),
-              Text('y ${_fixed(latest?.y)}'),
-              Text('z ${_fixed(latest?.z)}'),
-              Text('${node.count} readings'),
+              for (final MapEntry(key: keyExpr, value: sensor)
+                  in node.sensors.entries)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(keyExpr),
+                    Text('x ${_fixed(sensor.latest.x)}'),
+                    Text('y ${_fixed(sensor.latest.y)}'),
+                    Text('z ${_fixed(sensor.latest.z)}'),
+                    Text('${sensor.count} readings'),
+                  ],
+                ),
             ],
           ),
         ),
@@ -29,5 +38,5 @@ class NodeScreen extends ConsumerWidget {
     );
   }
 
-  static String _fixed(double? value) => (value ?? 0).toStringAsFixed(3);
+  static String _fixed(double value) => value.toStringAsFixed(3);
 }

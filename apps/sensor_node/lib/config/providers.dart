@@ -33,12 +33,9 @@ final sessionProvider = FutureProvider<void>(
   (ref) => ref.watch(zenohServiceProvider).open(),
 );
 
-/// The readings the node publishes, once the session is open, without their
-/// keys.
-final readingsProvider = StreamProvider<Reading>((ref) async* {
+/// The readings the node publishes, each with its key, once the session is
+/// open.
+final readingsProvider = StreamProvider<KeyedReading>((ref) async* {
   await ref.watch(sessionProvider.future);
-  yield* ref
-      .watch(sensorNodeRepositoryProvider)
-      .publish()
-      .map((keyed) => keyed.reading);
+  yield* ref.watch(sensorNodeRepositoryProvider).publish();
 });

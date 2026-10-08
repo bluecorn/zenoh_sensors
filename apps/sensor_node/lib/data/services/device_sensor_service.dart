@@ -1,23 +1,29 @@
 import 'package:sensor_core/sensor_core.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
-/// The shape of the plugin's accelerometer function, so that a test can hand
-/// in another.
-typedef AccelerometerEvents = Stream<AccelerometerEvent> Function({
-  Duration samplingPeriod,
-});
+/// The shape of the plugin's sensor functions, each a stream of its events,
+/// so that a test can hand in another.
+typedef SensorEvents<E> = Stream<E> Function({Duration samplingPeriod});
 
 /// The device's sensors, read through `sensors_plus`.
 class DeviceSensorService implements SensorService {
-  /// A service over the plugin's accelerometer, or over what a test hands in.
-  new({this._events = accelerometerEventStream});
+  /// A service over the plugin's accelerometer and gyroscope, or over what a
+  /// test hands in.
+  new({
+    this._accelerometerEvents = accelerometerEventStream,
+    this._gyroscopeEvents = gyroscopeEventStream,
+  });
 
-  final AccelerometerEvents _events;
+  final SensorEvents<AccelerometerEvent> _accelerometerEvents;
+  final SensorEvents<GyroscopeEvent> _gyroscopeEvents;
 
   @override
-  Stream<Reading> accelerometer() =>
-      _events().map((event) => Reading(x: event.x, y: event.y, z: event.z));
+  Stream<Reading> accelerometer() => _accelerometerEvents().map(
+    (event) => Reading(x: event.x, y: event.y, z: event.z),
+  );
 
   @override
-  Stream<Reading> gyroscope() => const Stream.empty();
+  Stream<Reading> gyroscope() => _gyroscopeEvents().map(
+    (event) => Reading(x: event.x, y: event.y, z: event.z),
+  );
 }
