@@ -1,0 +1,19 @@
+// The sensor node's session through a router, as a peer: it connects to the
+// router on the laptop, which tells it about the collector, and it listens so
+// that the collector can connect to it.
+{
+  // A peer: it listens, and it connects to other peers itself.
+  mode: "peer",
+  scouting: {
+    // No multicast scouting: the session asks the network for no one.
+    multicast: { enabled: false },
+    // Gossip scouting on: the router tells this session about the peers it
+    // knows, and this session connects to them.
+    gossip: { enabled: true },
+  },
+  // Where the session listens: port 7447 on every interface of the phone.
+  listen: { endpoints: ["tcp/0.0.0.0:7447"] },
+  // Where the session connects: the router on the laptop. Replace 192.0.2.10
+  // with your laptop's address on the Wi-Fi network.
+  connect: { endpoints: ["tcp/192.0.2.10:7447"] },
+}

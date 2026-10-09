@@ -32,11 +32,27 @@
       "args": ["watch"]
     },
     {
+      "name": "sensorctl watch (wifi-peer)",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/sensorctl/bin/sensorctl.dart",
+      "cwd": "${workspaceFolder}",
+      "args": ["--config", "apps/sensorctl/config/wifi-peer.json5", "watch"]
+    },
+    {
       "name": "sensor_node",
       "type": "dart",
       "request": "launch",
       "program": "${workspaceFolder}/apps/sensor_node/lib/main.dart",
       "cwd": "${workspaceFolder}/apps/sensor_node"
+    },
+    {
+      "name": "sensor_node (wifi-peer)",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/sensor_node/lib/main.dart",
+      "cwd": "${workspaceFolder}/apps/sensor_node",
+      "toolArgs": ["--dart-define=ZENOH_CONFIG=wifi-peer"]
     },
     {
       "name": "tests",

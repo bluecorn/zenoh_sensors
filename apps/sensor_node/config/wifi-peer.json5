@@ -1,0 +1,15 @@
+// The sensor node's session on Wi-Fi, peer to peer: it listens on every
+// interface of the phone, and the collector connects to it.
+{
+  // A peer: it listens, and it connects to other peers itself.
+  mode: "peer",
+  scouting: {
+    // No multicast scouting: the session asks the network for no one.
+    multicast: { enabled: false },
+    // No gossip scouting: no node tells this one about the nodes it knows.
+    gossip: { enabled: false },
+  },
+  // Where the session listens: port 7447 on every interface of the phone,
+  // its Wi-Fi address included.
+  listen: { endpoints: ["tcp/0.0.0.0:7447"] },
+}

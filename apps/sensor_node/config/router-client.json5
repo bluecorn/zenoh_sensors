@@ -1,0 +1,14 @@
+// The sensor node's session as a client of the router on the laptop: one
+// connection, to the router, which carries the readings; the phone listens
+// nowhere, so nothing needs to reach it.
+{
+  // A client: it connects to a router, and the router routes for it.
+  mode: "client",
+  scouting: {
+    // No multicast scouting: the session asks the network for no one.
+    multicast: { enabled: false },
+  },
+  // Where the session connects: the router on the laptop. Replace 192.0.2.10
+  // with your laptop's address on the Wi-Fi network.
+  connect: { endpoints: ["tcp/192.0.2.10:7447"] },
+}

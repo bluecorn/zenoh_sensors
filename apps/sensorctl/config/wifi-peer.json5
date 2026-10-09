@@ -1,0 +1,19 @@
+// sensorctl's session on Wi-Fi, peer to peer: a collector on the laptop,
+// which listens nowhere and connects to the phone's address.
+{
+  // A peer: it listens, and it connects to other peers itself.
+  mode: "peer",
+  scouting: {
+    // No multicast scouting: the session asks the network for no one.
+    multicast: { enabled: false },
+    // No gossip scouting: no node tells this one about the nodes it knows.
+    gossip: { enabled: false },
+  },
+  // Where the session listens: nowhere, where a peer listens on every
+  // interface by default.
+  listen: { endpoints: [] },
+  // Where the session connects: the phone's address on your Wi-Fi network.
+  // Replace 192.0.2.20 with the address the phone's Wireless debugging
+  // screen shows.
+  connect: { endpoints: ["tcp/192.0.2.20:7447"] },
+}

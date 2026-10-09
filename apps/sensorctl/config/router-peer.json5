@@ -1,0 +1,19 @@
+// sensorctl's session through a router, as a peer: it connects to the router
+// on this laptop, which tells it about the sensor node, and it connects to
+// the node itself.
+{
+  // A peer: it listens, and it connects to other peers itself.
+  mode: "peer",
+  scouting: {
+    // No multicast scouting: the session asks the network for no one.
+    multicast: { enabled: false },
+    // Gossip scouting on: the router tells this session about the peers it
+    // knows, and this session connects to them.
+    gossip: { enabled: true },
+  },
+  // Where the session listens: nowhere, where a peer listens on every
+  // interface by default.
+  listen: { endpoints: [] },
+  // Where the session connects: the router, on this laptop.
+  connect: { endpoints: ["tcp/127.0.0.1:7447"] },
+}
