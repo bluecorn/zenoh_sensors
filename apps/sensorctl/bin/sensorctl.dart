@@ -11,6 +11,13 @@ Future<void> main(List<String> arguments) async {
     'sensorctl',
     'Watch, query and command the zenoh sensor network from a terminal.',
   )..addCommand(WatchCommand());
+  runner.argParser.addOption(
+    'config',
+    help:
+        'The zenoh configuration file of the session, in place of the '
+        'development file.',
+    valueHelp: 'path',
+  );
   try {
     await runner.run(arguments);
   } on UsageException catch (error) {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:sensorctl/config/providers.dart';
 import 'package:sensorctl/ui/watch/watch_view.dart';
 import 'package:sensorctl/ui/watch/watch_view_model.dart';
 
@@ -18,7 +19,11 @@ class WatchCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final container = ProviderContainer(retry: (retryCount, error) => null);
+    final path = globalResults?.option('config');
+    final container = ProviderContainer(
+      overrides: [if (path != null) configPathProvider.overrideWithValue(path)],
+      retry: (retryCount, error) => null,
+    );
     final view = WatchView(Console())..open();
     final stop = Completer<void>();
     final signals = [

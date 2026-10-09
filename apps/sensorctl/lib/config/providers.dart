@@ -1,20 +1,24 @@
 import 'package:riverpod/riverpod.dart';
 import 'package:sensor_core/sensor_core.dart';
+import 'package:sensorctl/data/services/settings_file_service.dart';
 
-/// Which side of the topology this program is on: a collector, which listens
-/// nowhere and connects to the sensor node on the loopback.
+/// The path of the session's configuration file, from the top folder: the
+/// development file, unless `--config` names another.
+final configPathProvider = Provider<String>(
+  (ref) => 'apps/sensorctl/config/development.json5',
+);
+
+/// The service that reads the configuration file.
+final settingsFileServiceProvider = Provider<SettingsFileService>(
+  (ref) => SettingsFileService(),
+);
+
+/// Which side of the topology this program is on, as its configuration file
+/// says.
 final sessionSettingsProvider = Provider<SessionSettings>(
-  (ref) => const SessionSettings('''
-{
-  mode: "peer",
-  scouting: {
-    multicast: { enabled: false },
-    gossip: { enabled: false },
-  },
-  listen: { endpoints: [] },
-  connect: { endpoints: ["tcp/127.0.0.1:7447"] },
-}
-'''),
+  (ref) => ref
+      .watch(settingsFileServiceProvider)
+      .read(ref.watch(configPathProvider)),
 );
 
 /// The program's one zenoh service, disposed with the container.
