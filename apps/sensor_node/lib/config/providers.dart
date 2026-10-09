@@ -2,9 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensor_core/sensor_core.dart';
 import 'package:sensor_node/data/services/device_sensor_service.dart';
 
-/// Which side of the topology this app is on: the sensor node.
+/// Which side of the topology this app is on: the sensor node, which listens
+/// on the loopback and connects nowhere.
 final sessionSettingsProvider = Provider<SessionSettings>(
-  (ref) => SessionSettings.sensorNode(),
+  (ref) => const SessionSettings('''
+{
+  mode: "peer",
+  scouting: {
+    multicast: { enabled: false },
+    gossip: { enabled: false },
+  },
+  listen: { endpoints: ["tcp/127.0.0.1:7447"] },
+}
+'''),
 );
 
 /// The app's one zenoh service, disposed with the container.

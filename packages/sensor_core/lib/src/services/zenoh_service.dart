@@ -63,9 +63,10 @@ class ZenohService {
   final _publications = <Publication>[];
   final _subscriptions = <Subscription>[];
 
-  /// Opens the session with the settings. When this returns, each connection
-  /// they ask for is made, or the wait set by `scouting/delay` has run out,
-  /// and zenoh keeps retrying the connections not made yet.
+  /// Opens the session with the settings. For a peer, when this returns, each
+  /// connection they ask for is made, or the wait set by `scouting/delay` has
+  /// run out, and zenoh keeps retrying the connections not made yet. For a
+  /// client, this throws a `ZenohException` when no router answers.
   Future<void> open() async {
     _session = await Session.open(config: _config());
   }
@@ -106,11 +107,7 @@ class ZenohService {
     _session = null;
   }
 
-  Config _config() {
-    final config = Config();
-    settings.asJson5.forEach(config.insertJson5);
-    return config;
-  }
+  Config _config() => Config.fromStr(settings.json5);
 
   Session get _opened {
     final session = _session;

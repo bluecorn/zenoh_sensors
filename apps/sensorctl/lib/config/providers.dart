@@ -1,9 +1,20 @@
 import 'package:riverpod/riverpod.dart';
 import 'package:sensor_core/sensor_core.dart';
 
-/// Which side of the topology this program is on: a collector.
+/// Which side of the topology this program is on: a collector, which listens
+/// nowhere and connects to the sensor node on the loopback.
 final sessionSettingsProvider = Provider<SessionSettings>(
-  (ref) => SessionSettings.collectorNode(),
+  (ref) => const SessionSettings('''
+{
+  mode: "peer",
+  scouting: {
+    multicast: { enabled: false },
+    gossip: { enabled: false },
+  },
+  listen: { endpoints: [] },
+  connect: { endpoints: ["tcp/127.0.0.1:7447"] },
+}
+'''),
 );
 
 /// The program's one zenoh service, disposed with the container.

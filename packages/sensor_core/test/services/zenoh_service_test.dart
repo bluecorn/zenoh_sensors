@@ -3,17 +3,18 @@ import 'package:test/test.dart';
 import 'package:zenoh_dart/zenoh.dart';
 
 import '../support/collector.dart';
+import '../support/settings.dart';
 
 void main() {
   test('a sensor node and a collector find each other on loopback', () async {
     // The two ends: the sensor node, which listens, and a collector,
     // which connects to it. Each closes when the test ends.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(sensorNode.dispose);
     addTearDown(collectorNode.dispose);
 
-    // The code to implement: two sessions opened from the guide's settings.
+    // The code to implement: two sessions opened from the files' text.
     // The sensor node opens first, so the collector has something to reach.
     await sensorNode.open();
     await collectorNode.open();
@@ -26,7 +27,7 @@ void main() {
 
   test('a service has an id once it is open', () async {
     // The sensor node's end, closed when the test ends.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
 
     // The code to implement: an id, once the service is open.
@@ -38,8 +39,8 @@ void main() {
 
   test('two services have different ids', () async {
     // Two ends, closed when the test ends.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(sensorNode.dispose);
     addTearDown(collectorNode.dispose);
 
@@ -52,36 +53,42 @@ void main() {
   });
 
   test('neither side announces itself on the network', () {
-    // The code to implement: both sides' settings, read back as data. An
-    // absence cannot be watched, so it is checked as the value behind it.
-    final sensorSettings = SessionSettings.sensorNode().asJson5;
-    final collectorSettings = SessionSettings.collectorNode().asJson5;
+    // The code to implement: both sides' files, each parsed by zenoh and read
+    // back as data. An absence cannot be watched, so it is checked as the
+    // value behind it.
+    final sensorConfig = Config.fromStr(sensorNodeSettings().json5);
+    final collectorConfig = Config.fromStr(collectorSettings().json5);
+    addTearDown(sensorConfig.dispose);
+    addTearDown(collectorConfig.dispose);
 
     // The claim: both sides are peers that neither scout nor gossip.
-    for (final settings in [sensorSettings, collectorSettings]) {
-      expect(settings, containsPair('mode', '"peer"'));
-      expect(settings, containsPair('scouting/multicast/enabled', 'false'));
-      expect(settings, containsPair('scouting/gossip/enabled', 'false'));
+    for (final config in [sensorConfig, collectorConfig]) {
+      expect(config.get('mode'), '"peer"');
+      expect(config.get('scouting/multicast/enabled'), 'false');
+      expect(config.get('scouting/gossip/enabled'), 'false');
     }
   });
 
   test('the collector connects to where the sensor node listens', () {
-    // The code to implement: the endpoints, read back as data.
+    // The code to implement: the endpoints of both files, each parsed by
+    // zenoh and read back as data.
     const address = '["tcp/127.0.0.1:7447"]';
-    final sensorSettings = SessionSettings.sensorNode().asJson5;
-    final collectorSettings = SessionSettings.collectorNode().asJson5;
+    final sensorConfig = Config.fromStr(sensorNodeSettings().json5);
+    final collectorConfig = Config.fromStr(collectorSettings().json5);
+    addTearDown(sensorConfig.dispose);
+    addTearDown(collectorConfig.dispose);
 
     // The claim: the sensor node listens at the address and connects to
     // nothing, and the collector listens nowhere and connects to it.
-    expect(sensorSettings, containsPair('listen/endpoints', address));
-    expect(sensorSettings, containsPair('connect/endpoints', '[]'));
-    expect(collectorSettings, containsPair('listen/endpoints', '[]'));
-    expect(collectorSettings, containsPair('connect/endpoints', address));
+    expect(sensorConfig.get('listen/endpoints'), address);
+    expect(sensorConfig.get('connect/endpoints'), '[]');
+    expect(collectorConfig.get('listen/endpoints'), '[]');
+    expect(collectorConfig.get('connect/endpoints'), address);
   });
 
   test('a collector opens even when no sensor node is listening', () async {
     // A collector alone: nothing listens at its address.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
 
     await collectorNode.open();
@@ -92,7 +99,7 @@ void main() {
 
   test('disposing is safe before open, and more than once after', () async {
     // A rule of the pattern: disposing never throws, whatever the state.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     expect(sensorNode.dispose, returnsNormally);
 
     await sensorNode.open();
@@ -104,7 +111,7 @@ void main() {
 
   test('asking an unopened service for its id is an error', () {
     // A rule of the pattern: an unopened service has no id to give.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
 
     // The claim: asking throws a StateError.
     expect(() => sensorNode.zid, throwsStateError);
@@ -112,7 +119,7 @@ void main() {
 
   test('a put through a publication reaches a subscriber as text', () async {
     // The node's end: its session, from the settings that listen.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
 
@@ -144,7 +151,7 @@ void main() {
     'a subscriber that arrives after a put sees only what follows',
     () async {
       // The node's end: a session and its publication.
-      final sensorNode = ZenohService(SessionSettings.sensorNode());
+      final sensorNode = ZenohService(sensorNodeSettings());
       addTearDown(sensorNode.dispose);
       await sensorNode.open();
       final publication = sensorNode.declarePublication('sensor/phone/accel');
@@ -176,7 +183,7 @@ void main() {
 
   test('disposing the service closes its publications', () async {
     // A rule of the pattern: dispose closes what the service declared.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     await sensorNode.open();
     final publication = sensorNode.declarePublication('sensor/phone/accel');
 
@@ -190,7 +197,7 @@ void main() {
   test('closing a publication twice is safe', () async {
     // A rule of the pattern, which the repository's cancel and the
     // service's dispose both rely on.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
     final publication = sensorNode.declarePublication('sensor/phone/accel')
@@ -202,13 +209,13 @@ void main() {
 
   test('a subscription receives the text a publication puts', () async {
     // The node's end: its session, from the settings that listen.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
 
     // The laptop's end: a collector's session, from the settings that
     // connect.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
     await collectorNode.open();
 
@@ -235,7 +242,7 @@ void main() {
 
   test('disposing the service closes its subscriptions', () async {
     // A rule of the pattern: dispose closes what the service declared.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     await collectorNode.open();
     final subscription = collectorNode.declareSubscription(
       'sensor/phone/accel',
@@ -251,7 +258,7 @@ void main() {
   test('closing a subscription twice is safe', () async {
     // A rule of the pattern, which the repository's cancel and the
     // service's dispose both rely on.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
     await collectorNode.open();
     final subscription = collectorNode.declareSubscription('sensor/phone/accel')
@@ -263,13 +270,13 @@ void main() {
 
   test('a sample arrives with the key it was put on', () async {
     // The node's end: its session, from the settings that listen.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
 
     // The laptop's end: a collector's session, from the settings that
     // connect.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
     await collectorNode.open();
 
@@ -298,13 +305,13 @@ void main() {
 
   test('a subscriber to sensor/phone/* receives the key of the put', () async {
     // The node's end: its session, from the settings that listen.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
 
     // The laptop's end: a collector's session, from the settings that
     // connect.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
     await collectorNode.open();
 
@@ -330,10 +337,10 @@ void main() {
 
   test('a wildcard stands for one segment of a key', () async {
     // A pin about zenoh: what a subscription on sensor/phone/* leaves out.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
     await collectorNode.open();
     final subscription = collectorNode.declareSubscription('sensor/phone/*');
@@ -350,5 +357,23 @@ void main() {
 
     // The claim: only the key of three segments arrives.
     expect(received, ['sensor/phone/gyro']);
+  });
+
+  test('a client whose router does not answer does not open', () async {
+    // A client of a router that is not there: nothing listens at the
+    // address, as nothing listens for the collector that opens alone.
+    final client = ZenohService(
+      const SessionSettings('''
+{
+  mode: "client",
+  scouting: { multicast: { enabled: false } },
+  connect: { endpoints: ["tcp/127.0.0.1:7447"] },
+}
+'''),
+    );
+    addTearDown(client.dispose);
+
+    // The claim: opening fails, where a peer's open returns with no peers.
+    await expectLater(client.open(), throwsA(isA<ZenohException>()));
   });
 }

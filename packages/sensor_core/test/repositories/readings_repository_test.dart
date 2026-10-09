@@ -3,17 +3,18 @@ import 'package:test/test.dart';
 
 import '../support/collector.dart';
 import '../support/fakes.dart';
+import '../support/settings.dart';
 
 void main() {
   test('a reading the phone publishes reaches the collector', () async {
     // The node's end: its session, from the settings that listen.
-    final sensorNode = ZenohService(SessionSettings.sensorNode());
+    final sensorNode = ZenohService(sensorNodeSettings());
     addTearDown(sensorNode.dispose);
     await sensorNode.open();
 
     // The laptop's end: a collector's session, from the settings that
     // connect.
-    final collectorNode = ZenohService(SessionSettings.collectorNode());
+    final collectorNode = ZenohService(collectorSettings());
     addTearDown(collectorNode.dispose);
     await collectorNode.open();
 
@@ -86,13 +87,13 @@ void main() {
     "the collector receives each of the phone's sensors under its own key",
     () async {
       // The node's end: its session, from the settings that listen.
-      final sensorNode = ZenohService(SessionSettings.sensorNode());
+      final sensorNode = ZenohService(sensorNodeSettings());
       addTearDown(sensorNode.dispose);
       await sensorNode.open();
 
       // The laptop's end: a collector's session, from the settings that
       // connect.
-      final collectorNode = ZenohService(SessionSettings.collectorNode());
+      final collectorNode = ZenohService(collectorSettings());
       addTearDown(collectorNode.dispose);
       await collectorNode.open();
 

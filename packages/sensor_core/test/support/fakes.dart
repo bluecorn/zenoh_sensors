@@ -65,7 +65,7 @@ class FakeZenohService implements ZenohService {
   }
 
   @override
-  SessionSettings get settings => SessionSettings.sensorNode();
+  SessionSettings get settings => const SessionSettings('{}');
 
   @override
   Future<void> open() async {}

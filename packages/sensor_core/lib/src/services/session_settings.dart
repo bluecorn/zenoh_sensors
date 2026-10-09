@@ -1,41 +1,10 @@
-/// A session's settings, by role: where it listens and where it connects.
-/// The three settings that never vary are in [asJson5] too.
+/// A session's settings: the text of its zenoh configuration file, in JSON5.
+/// The file holds the keys that differ from zenoh's defaults, among them
+/// where the session listens and where it connects, and its mode.
 class SessionSettings {
-  const new _({required this.listenEndpoints, required this.connectEndpoints});
+  /// Settings read from a configuration file, whose text is [json5].
+  const new(this.json5);
 
-  /// The sensor node's settings: it listens on the loopback and connects
-  /// nowhere.
-  factory sensorNode() => const SessionSettings._(
-    listenEndpoints: [nodeEndpoint],
-    connectEndpoints: [],
-  );
-
-  /// A collector's settings: it listens nowhere and connects to the sensor
-  /// node.
-  factory collectorNode() => const SessionSettings._(
-    listenEndpoints: [],
-    connectEndpoints: [nodeEndpoint],
-  );
-
-  /// Where the sensor node listens: the loopback, port 7447.
-  static const nodeEndpoint = 'tcp/127.0.0.1:7447';
-
-  /// The endpoints the session listens on.
-  final List<String> listenEndpoints;
-
-  /// The endpoints the session connects to.
-  final List<String> connectEndpoints;
-
-  /// The settings as the entries `Config.insertJson5` takes: a key path and a
-  /// JSON5 value each.
-  Map<String, String> get asJson5 => {
-    'mode': '"peer"',
-    'scouting/multicast/enabled': 'false',
-    'scouting/gossip/enabled': 'false',
-    'listen/endpoints': _json5List(listenEndpoints),
-    'connect/endpoints': _json5List(connectEndpoints),
-  };
-
-  static String _json5List(List<String> items) =>
-      '[${items.map((item) => '"$item"').join(', ')}]';
+  /// The text of the session's configuration file, in JSON5.
+  final String json5;
 }

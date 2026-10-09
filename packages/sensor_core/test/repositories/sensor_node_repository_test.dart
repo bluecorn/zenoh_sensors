@@ -6,11 +6,12 @@ import 'package:zenoh_dart/zenoh.dart';
 
 import '../support/collector.dart';
 import '../support/fakes.dart';
+import '../support/settings.dart';
 
 void main() {
   test('a sensor reading reaches a subscriber on sensor/phone/accel', () async {
     // The node's end: its session, from the settings that listen.
-    final zenoh = ZenohService(SessionSettings.sensorNode());
+    final zenoh = ZenohService(sensorNodeSettings());
     addTearDown(zenoh.dispose);
     await zenoh.open();
 
