@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:sensor_node/ui/node/node_view_model.dart';
 
 class FakeNodeViewModel extends NodeViewModel {
@@ -7,4 +10,14 @@ class FakeNodeViewModel extends NodeViewModel {
 
   @override
   NodeState build() => fixed;
+}
+
+class FakeAssetBundle extends AssetBundle {
+  new(this.assets);
+
+  final Map<String, String> assets;
+
+  @override
+  Future<ByteData> load(String key) async =>
+      ByteData.sublistView(utf8.encode(assets[key]!));
 }
